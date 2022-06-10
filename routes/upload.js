@@ -9,6 +9,6 @@ const { isAuth } = require('../service/isAuth')
 const upload = require('../middleware/upload')
 
 // 上傳圖片
-router.post('/file/image', upload, handleErrorAsync(UploadController.uploadImage))
+router.post('/upload', isAuth, upload, handleErrorAsync(UploadController.uploadImage))
 
 module.exports = router
