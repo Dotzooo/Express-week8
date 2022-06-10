@@ -6,6 +6,26 @@ const postSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'User Id 未填寫']
     },
+    content: {
+      type: String,
+      required: [true, 'Content 未填寫'],
+    },
+    likes: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
+    comments: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "Comment",
+      },
+    ],
+    image: {
+      type: String,
+      default: ""
+    },
     tags: [
       {
         type: String,
@@ -17,27 +37,11 @@ const postSchema = new mongoose.Schema(
       enum: ['group', 'person'],
       required: [true, '貼文類型 type 未填寫']
     },
-    image: {
-      type: String,
-      default: ""
-    },
     createdAt: {
       type: Date,
       default: Date.now,
       select: false
     },
-    content: {
-      type: String,
-      required: [true, 'Content 未填寫'],
-    },
-    likes: {
-      type: Number,
-      default: 0
-    },
-    comments: {
-      type: Number,
-      default: 0
-    }
   },
   {
     versionKey: false
