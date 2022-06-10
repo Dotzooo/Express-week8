@@ -10,8 +10,20 @@ const { isAuth } = require('../service/isAuth')
 // 取得所有貼文
 router.get('/posts', isAuth, handleErrorAsync(PostController.getPosts))
 
+// 取得個人所有貼文列表
+router.get('/posts/user/:userID', isAuth, handleErrorAsync(PostController.getUserPosts))
+
+// 取得單一貼文
+router.get('/posts/:postID', isAuth, handleErrorAsync(PostController.getPost))
+
 // 新增貼文
-router.post('/post', isAuth, handleErrorAsync(PostController.createPost))
+router.post('/posts', isAuth, handleErrorAsync(PostController.createPost))
+
+// 新增一則貼文的讚
+router.post("/posts/:postID/like", isAuth, handleErrorAsync(PostController.addPostLike))
+
+// 取消一則貼文的讚
+router.delete("/posts/:postID/unlike", isAuth, handleErrorAsync(PostController.delPostLike))
 
 // 修改貼文
 router.patch('/post/:id', isAuth, handleErrorAsync(PostController.editPost))

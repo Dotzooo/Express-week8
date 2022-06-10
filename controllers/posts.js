@@ -21,9 +21,36 @@ const posts = {
         handleSuccess(res, allPosts)
     },
 
+    async getUserPosts(req, res, next) {
+        const { userID } = req.params
+
+        const allPosts = await Post.find({ user: userID }).populate({
+            path: "user",
+            select: "name photo"
+        })
+
+        handleSuccess(res, allPosts)
+    },
+
+    async getPost(req, res, next) {
+        const { params: { postID } } = req
+
+        if (!(postID && mongoose.Types.ObjectId.isValid(postID))) {
+            return appError(400, '資料錯誤，請重新操作')
+        }
+
+        const ExistPost = await Post.findById(postID).exec()
+
+        if (!ExistPost) {
+            return appError(400, '尚未發布貼文!', next)
+        }
+
+        handleSuccess(res, ExistPost)
+    },
+
     async createPost(req, res, next) {
         const { userID, tags, type, content, image } = req.body
-        
+
         const isValid = mongoose.Types.ObjectId.isValid(userID)
         if (!isValid) {
             return appError(400, '資料錯誤，請重新操作', next)
@@ -46,6 +73,72 @@ const posts = {
         } else {
             appError(400, '請填寫 content', next)
         }
+    },
+
+    async addPostLike(req, res, next) {
+        const {
+            user,
+            params: {
+                postID
+            }
+        } = req
+
+        if (!(postID && mongoose.Types.ObjectId.isValid(postID))) {
+            return appError(400, '資料錯誤，請重新操作')
+        }
+
+        const ExistPost = await Post.findById(postID).exec()
+
+        if (!ExistPost) {
+            return appError(400, '尚未發布貼文!', next)
+        }
+
+        const data = await Post.findOneAndUpdate(
+            {
+                _id: postID
+            },
+            {
+                $addToSet: { likes: user._id.toString() }
+            },
+            {
+                new: true
+            }
+        )
+
+        handleSuccess(res, data)
+    },
+
+    async delPostLike(req, res, next) {
+        const {
+            user,
+            params: {
+                postID
+            }
+        } = req
+
+        if (!(postID && mongoose.Types.ObjectId.isValid(postID))) {
+            return appError(400, '資料錯誤，請重新操作')
+        }
+
+        const ExistPost = await Post.findById(postID).exec()
+
+        if (!ExistPost) {
+            return appError(400, '尚未發布貼文!', next)
+        }
+
+        const data = await Post.findOneAndUpdate(
+            {
+                _id: postID
+            },
+            {
+                $pull: { likes: user._id }
+            },
+            {
+                new: true
+            }
+        )
+
+        handleSuccess(res, data)
     },
 
     async editPost(req, res, next) {
