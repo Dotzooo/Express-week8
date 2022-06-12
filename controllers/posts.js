@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const User = require('../models/users')
 const Post = require('../models/posts')
+const Comment = require('../models/comment')
 
 const handleSuccess = require('../service/handleSuccess')
 const appError = require('../service/appError')
@@ -93,17 +94,13 @@ const posts = {
             return appError(400, '尚未發布貼文!', next)
         }
 
-        const data = await Post.findOneAndUpdate(
-            {
-                _id: postID
-            },
-            {
-                $addToSet: { likes: user._id.toString() }
-            },
-            {
-                new: true
-            }
-        )
+        const data = await Post.findOneAndUpdate({
+            _id: postID
+        }, {
+            $addToSet: { likes: user._id.toString() }
+        }, {
+            new: true
+        })
 
         handleSuccess(res, data)
     },
@@ -126,17 +123,13 @@ const posts = {
             return appError(400, '尚未發布貼文!', next)
         }
 
-        const data = await Post.findOneAndUpdate(
-            {
-                _id: postID
-            },
-            {
-                $pull: { likes: user._id }
-            },
-            {
-                new: true
-            }
-        )
+        const data = await Post.findOneAndUpdate({
+            _id: postID
+        }, {
+            $pull: { likes: user._id }
+        }, {
+            new: true
+        })
 
         handleSuccess(res, data)
     },
@@ -178,6 +171,47 @@ const posts = {
     async deleteAllPosts(req, res, next) {
         const postResult = await Post.deleteMany({})
         handleSuccess(res, postResult)
+    },
+
+    async postComment(req, res, next) {
+        const {
+            user,
+            body: {
+                comment
+            },
+            params: {
+                postID
+            }
+        } = req;
+
+
+        if (!(postID && mongoose.Types.ObjectId.isValid(postID))) {
+            return appError(400, "請傳入特定貼文", next)
+        }
+        if (!comment) {
+            return appError(400, "請填寫留言內容!", next)
+        }
+
+        const ExistPost = await Post.findById(postID).exec()
+        if (!ExistPost) {
+            return appError(400, "尚未發布貼文!", next)
+        }
+
+        const newComment = await Comment.create({ user, comment })
+
+        await Post.updateOne({
+            _id: postID
+        }, {
+            comments: [...ExistPost.comments, newComment._id]
+        })
+
+        const postComment = await Comment.findById(newComment.id)
+            .populate({
+                path: 'user',
+                select: 'name photo'
+            })
+
+        handleSuccess(res, postComment)
     }
 }
 

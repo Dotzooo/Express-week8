@@ -34,4 +34,7 @@ router.delete('/post/:id', isAuth, handleErrorAsync(PostController.deletePost))
 // 刪除所有貼文
 router.delete('/posts', isAuth, handleErrorAsync(PostController.deleteAllPosts))
 
+// 新增一則貼文的留言
+router.post('/posts/:postID/comment', isAuth, handleErrorAsync(PostController.postComment))
+
 module.exports = router;
